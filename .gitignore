@@ -1,0 +1,25 @@
+# Xcode
+## User settings & workspace state
+*.xcuserdatad/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+UserInterfaceState.xcuserstate
+
+## Build generated files
+DerivedData/
+build/
+*.build/
+
+## Swift Package Manager
+.build/
+.swiftpm/
+
+## Configuration & Secrets
+Config.xcconfig
+
+## macOS files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+.junie/

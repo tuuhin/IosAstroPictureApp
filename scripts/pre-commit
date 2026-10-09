@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -e
+
+# Ensure PATH contains standard Homebrew and binary locations
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# Ensure swiftformat is installed
+if ! command -v swiftformat &> /dev/null; then
+    echo "Error: swiftformat is not installed."
+    echo "Please install it using: brew install swiftformat"
+    exit 1
+fi
+
+# Retrieve staged Swift files (excluding deleted files and ensuring they exist on disk)
+FILES=()
+while IFS= read -r -d '' file; do
+    if [ -f "$file" ]; then
+        FILES+=("$file")
+    fi
+done < <(git diff --cached --name-only --diff-filter=d -z "*.swift")
+
+if [ ${#FILES[@]} -gt 0 ]; then
+    echo "Running SwiftFormat on staged Swift files..."
+    swiftformat "${FILES[@]}"
+    git add "${FILES[@]}"
+fi
+
+exit 0

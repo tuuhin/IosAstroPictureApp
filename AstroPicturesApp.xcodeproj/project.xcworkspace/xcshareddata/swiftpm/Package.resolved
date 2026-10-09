@@ -1,0 +1,15 @@
+{
+  "originHash" : "98498af964e1f851647900e2d20034e5e225c28c4deb9ed9d0bda6902c2057f9",
+  "pins" : [
+    {
+      "identity" : "palettekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/2dubu/PaletteKit",
+      "state" : {
+        "revision" : "403c057d57d43c9785595a4f0984a67b23fef95e",
+        "version" : "1.7.0"
+      }
+    }
+  ],
+  "version" : 3
+}
