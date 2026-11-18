@@ -1,12 +1,17 @@
 import Foundation
 
-class APIClientImpl: APIClient {
+final class APIClientImpl: APIClient {
     private var session: URLSession
     private var baseURL: URL
     private var decoder: JSONDecoder
     private var interceptors: [HttpRequestInterceptor]
 
-    init(session: URLSession, baseURL: URL, decoder: JSONDecoder, interceptors: [HttpRequestInterceptor]) {
+    init(
+        session: URLSession,
+        baseURL: URL,
+        decoder: JSONDecoder = NetworkingConfiguration.decoder,
+        interceptors: [HttpRequestInterceptor] = []
+    ) {
         self.session = session
         self.baseURL = baseURL
         self.decoder = decoder

@@ -1,61 +1,150 @@
 import SwiftUI
 
 struct APODContentView: View {
-    let apod: APODModel
+    let apod: AstroPictureModel
+    let onToggleFavorite: @MainActor () -> Void
 
-    init(apod: APODModel) {
-        self.apod = apod
-
-        let navBarAppearance = UINavigationBarAppearance()
-        navBarAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-        navBarAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-
-        UINavigationBar.appearance().standardAppearance = navBarAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
-    }
+    @State var isDescriptionExpanded = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-                Image("APODPreview")
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-
+                imageWithOverLay
                 detailsOverlay
-                    .padding(.horizontal, 20.0)
+                    .padding(.horizontal)
+                    .padding(.bottom, 32)
             }
-            .navigationTitle("Picture of the day")
+            .navigationTitle("Astro Picture")
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: onToggleFavorite) {
+                        Label("Favourite", systemImage: "heart")
+                            .symbolVariant(apod.isFav ? .fill : .none)
+                    }
+                    .tint(apod.isFav ? .pink : .primary)
+                    .animation(.easeInOut(duration: 0.2), value: apod.isFav)
+                }
+            }
         }
     }
 
-    /// Details overlay view handling version fallback
+    private var imageWithOverLay: some View {
+        GeometryReader { geometry in
+            ZStack {
+                if apod.mediaType == .image {
+                    // astro image
+                    AstroImage(imageUrl: URL(string: apod.hdURL ?? apod.url))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                } else {
+                    Color.black
+                }
+
+                //  Graditent overlay
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.5)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            }
+        }.ignoresSafeArea()
+    }
+
     private var detailsOverlay: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
+            // Header Tags: Date & Media Type Badge
+            HStack(spacing: 8) {
+                Label(apod.date.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial, in: Capsule())
+
+                Label(apod.mediaType.rawValue.capitalized, systemImage: apod.mediaType == .image ? "photo.fill" : "play.tv.fill")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial, in: Capsule())
+
+                Spacer()
+            }
+            .foregroundColor(.white.opacity(0.9))
+
+            // Title
             Text(apod.title)
-                .font(.title2)
+                .font(.largeTitle)
                 .bold()
                 .foregroundColor(.white)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
 
-            Text(apod.description)
-                .font(.subheadline)
-                .foregroundColor(.white)
-                .lineLimit(3)
+            // Description with tap-to-expand
+            VStack(alignment: .leading, spacing: 6) {
+                Text(apod.htmlToAttributedString)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(isDescriptionExpanded ? nil : 3)
+                    .animation(.easeInOut(duration: 0.25), value: isDescriptionExpanded)
 
-            if let credit = apod.credit {
-                Text("Credit: \(credit)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Button {
+                    withAnimation(.easeInOut) {
+                        isDescriptionExpanded.toggle()
+                    }
+                } label: {
+                    Text(isDescriptionExpanded ? "Show Less" : "Read More")
+                        .font(.caption)
+                        .bold()
+                        .foregroundColor(.blue.opacity(0.8))
+                }
+            }
+
+            Divider()
+                .frame(height: 1.0)
+                .background(.regularMaterial, in: Capsule())
+
+            // Footer Badges: Credits & Copyright
+            HStack(alignment: .center, spacing: 12) {
+                if let credit = apod.plainCredit, !credit.isEmpty {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("CREDIT")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.6))
+                        Text(credit)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    }
+                }
+
+                if let copyright = apod.plainCopyright, !copyright.isEmpty {
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("COPYRIGHT")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.6))
+                        Text(copyright)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    }
+                }
             }
         }
-        .padding(.horizontal, 20.0)
-        .glassOrMaterial()
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .padding(24)
+        .glassOrMaterial(cornerRadius: RoundedRectangle(cornerRadius: 24.0, style: .continuous))
     }
 }
 
 #Preview {
-    APODContentView(apod: APODModel(
+    APODContentView(apod: AstroPictureModel(
         date: Date.now,
         postId: -1,
         title: "Astronomy Picture",
@@ -65,6 +154,7 @@ struct APODContentView: View {
         copyRight: "NASA",
         alt: "Alternate String",
         url: "",
-        hdURL: nil
-    ))
+        hdURL: nil,
+        isFav: true
+    ), onToggleFavorite: {})
 }

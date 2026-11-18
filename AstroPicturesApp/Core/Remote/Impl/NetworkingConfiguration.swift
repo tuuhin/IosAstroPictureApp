@@ -1,7 +1,7 @@
 import Foundation
 
 enum NetworkingConfiguration {
-    private static let dateFormatter = {
+    static let dateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -12,7 +12,6 @@ enum NetworkingConfiguration {
 
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
         return decoder
     }()
@@ -24,6 +23,5 @@ enum NetworkingConfiguration {
         configuration.timeoutIntervalForResource = 60
 
         return URLSession(configuration: configuration)
-
     }()
 }

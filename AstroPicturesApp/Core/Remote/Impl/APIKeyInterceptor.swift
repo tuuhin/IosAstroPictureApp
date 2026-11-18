@@ -1,12 +1,11 @@
 import Foundation
 
-struct APIKeyInterceptor: HttpRequestInterceptor {
+final class APIKeyInterceptor: HttpRequestInterceptor {
     func intercept(_ request: URLRequest) async throws -> URLRequest {
         var request = request
 
-        guard var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else {
-            throw NetworkError.invalidURL
-        }
+        guard let url = request.url, var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        else { throw NetworkError.invalidURL }
 
         var queryItems = components.queryItems ?? []
         guard let apiKey = Bundle.main.infoDictionary?["NASA_API_KEY"] as? String else {
