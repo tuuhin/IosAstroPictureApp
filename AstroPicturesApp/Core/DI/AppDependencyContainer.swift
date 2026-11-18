@@ -1,24 +1,36 @@
 import Foundation
+import SwiftData
 
 @MainActor
 final class AppDependencyContainer {
     static let shared = AppDependencyContainer()
 
-    let apiClient: APIClient
-    let apodRemoteDataSource: APODRemoteDataSource
+    let apodRemoteDataSource: AstroPictureRemoteDataSource
+    let apodLocalDao: AstroPictureLocalDataSource
     let apodRepository: APODRepository
 
-    init(baseURL: URL = URL(string: "https://api.nasa.gov")!) {
+    private let nasaURL = URL(string: "https://science.nasa.gov")
+
+    init() {
         let interceptors: [HttpRequestInterceptor] = [APIKeyInterceptor()]
+
+        // client
         let client = APIClientImpl(
             session: NetworkingConfiguration.session,
-            baseURL: baseURL,
+            baseURL: nasaURL!,
             decoder: NetworkingConfiguration.decoder,
             interceptors: interceptors
         )
-        apiClient = client
-        let remoteDataSource = APODRemoteDataSourceImpl(client: client)
+
+        // remote client
+        let remoteDataSource = AstroPictureRemoteDataSourceImpl(client: client)
         apodRemoteDataSource = remoteDataSource
-        apodRepository = APODRepositoryImpl(remoteDataSource: remoteDataSource)
+
+        // local source
+        let modelContainer = LocalDbConfig.dbModelContainer
+        apodLocalDao = AstroPictureLocalDataSourceImpl(context: modelContainer.mainContext)
+
+        // set the apod repository
+        apodRepository = APODRepositoryImpl(remoteDataSource: remoteDataSource, localDataSource: apodLocalDao)
     }
 }

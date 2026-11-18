@@ -1,42 +1,53 @@
 import SwiftUI
 
 struct AstroImage<Placeholder: View, Failure: View>: View {
-    let imageUrl: URL
-    let placeholder: () -> Placeholder
-    let failure: (Error) -> Failure
-
-    init(imageUrl: URL,
-         @ViewBuilder placeholder: @escaping () -> Placeholder = { ProgressView().frame(height: 280) },
-         @ViewBuilder failure: @escaping (Error) -> Failure = { _ in ContentUnavailableView("Failed to load the image", systemImage: "photo")
-         })
-    {
-        self.imageUrl = imageUrl
-        self.placeholder = placeholder
-        self.failure = failure
-    }
+    let imageUrl: URL?
+    @ViewBuilder let placeholder: () -> Placeholder
+    @ViewBuilder let failure: (Error?) -> Failure
 
     var body: some View {
-        if isPreview {
+        if isXcodePreview {
+            // An preview image as this is a xc preview
             Image("APODPreview")
-        } else {
-            remoteImage
-        }
-    }
-
-    private var remoteImage: some View {
-        AsyncImage(url: imageUrl) { phase in
-            switch phase {
-            case .empty:
-                placeholder()
-            case let .success(image):
-                image
-            case let .failure(error):
-                failure(error)
-            @unknown default:
-                EmptyView()
+                .resizable()
+        } else if let imageUrl {
+            // check the imageurl not null if yes load the async image result
+            AsyncImage(url: imageUrl) { phase in
+                switch phase {
+                case .empty:
+                    placeholder()
+                case let .success(image):
+                    image.resizable()
+                case let .failure(error):
+                    failure(error)
+                @unknown default:
+                    placeholder()
+                }
             }
+        } else {
+            failure(nil)
         }
     }
 
-    private let isPreview: Bool = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    private var isXcodePreview: Bool {
+        #if DEBUG
+            return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        #else
+            return false
+        #endif
+    }
+}
+
+extension AstroImage where Placeholder == ProgressView<EmptyView, EmptyView>, Failure == AnyView {
+    init(imageUrl: URL?) {
+        self.init(
+            imageUrl: imageUrl,
+            placeholder: {
+                ProgressView()
+            },
+            failure: { _ in
+                AnyView(ContentUnavailableView("Failed to load image", systemImage: "photo"))
+            }
+        )
+    }
 }

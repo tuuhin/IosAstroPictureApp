@@ -1,6 +1,6 @@
 import Foundation
 
-struct APODModel: Sendable {
+struct AstroPictureModel: Sendable {
     let date: Date
     let postId: Int
     let title: String
@@ -11,4 +11,5 @@ struct APODModel: Sendable {
     let alt: String?
     let url: String
     let hdURL: String?
+    var isFav: Bool
 }

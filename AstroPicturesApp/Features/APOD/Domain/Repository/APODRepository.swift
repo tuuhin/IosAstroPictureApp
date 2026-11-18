@@ -1,5 +1,7 @@
 import Foundation
 
 protocol APODRepository: Sendable {
-    func fetchToday() async throws -> APODModel
+    func fetchLatest() async throws -> AstroPictureModel
+    func observeLatest() async throws -> AsyncStream<AstroPictureModel?>
+    func toggleFavourite(model: AstroPictureModel) async
 }

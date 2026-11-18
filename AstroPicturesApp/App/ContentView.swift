@@ -7,7 +7,7 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             // Home view for APOD
             Tab("Home", systemImage: "house", value: .apod) {
-                APODView()
+                APODScreenView()
             }
             // Explore view
             Tab("Explore", systemImage: "safari", value: .explore) {

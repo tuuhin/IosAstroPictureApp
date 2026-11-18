@@ -1,32 +1,35 @@
 import Foundation
 import Observation
 
-enum ViewState {
-    case idle
-    case loading
-    case success(APODModel)
-    case failure(Error)
-}
-
 @Observable
 @MainActor
 final class APODViewModel {
-    /// injections
     private let repository: APODRepository
 
-    var state: ViewState = .idle
-
-    init(repository: APODRepository = AppDependencyContainer.shared.apodRepository) {
-        self.repository = repository
+    init(repository: APODRepository? = nil) {
+        // using the apod repository from the dependency container
+        self.repository = repository ?? AppDependencyContainer.shared.apodRepository
     }
 
-    func fetchToday() async {
-        state = .loading
+    /// exposing this state
+    var state: APODScreenState = .idle
+
+    func observe() async {
         do {
-            let apod = try await repository.fetchToday()
-            state = .success(apod)
+            // read in the async stream
+            for await latest in try await repository.observeLatest() {
+                if let latest {
+                    state = .success(latest)
+                }
+            }
         } catch {
             state = .failure(error)
+        }
+    }
+
+    func toggleFavourite() async {
+        if case let .success(astroPictureModel) = state {
+            await repository.toggleFavourite(model: astroPictureModel)
         }
     }
 }
