@@ -16,6 +16,26 @@ Browse NASA's **Astronomy Picture of the Day** (APOD) — a SwiftUI + SwiftData 
 
 ---
 
+## Screenshots
+
+Captured on the **iPhone Duo** simulator (iOS 27.2) with the app running in both device poses. iPhone Duo is a foldable, so the same app is shown below on its cover display (**compact** width) and its inner display (**regular** width).
+
+### Compact — cover display, closed (466 × 678 pt)
+
+| APOD | Explore | Search | Detail |
+|:---:|:---:|:---:|:---:|
+| [<img src="Screenshots/compact-apod.png" width="200" alt="APOD on the closed iPhone Duo">](Screenshots/compact-apod.png) | [<img src="Screenshots/compact-explore.png" width="200" alt="Explore on the closed iPhone Duo">](Screenshots/compact-explore.png) | [<img src="Screenshots/compact-search.png" width="200" alt="Search on the closed iPhone Duo">](Screenshots/compact-search.png) | [<img src="Screenshots/compact-detail.png" width="200" alt="Picture detail on the closed iPhone Duo">](Screenshots/compact-detail.png) |
+
+### Regular — inner display, open (669 × 951 pt)
+
+| APOD | Explore | Search | Detail |
+|:---:|:---:|:---:|:---:|
+| [<img src="Screenshots/regular-apod.png" width="200" alt="APOD on the open iPhone Duo">](Screenshots/regular-apod.png) | [<img src="Screenshots/regular-explore.png" width="200" alt="Explore on the open iPhone Duo">](Screenshots/regular-explore.png) | [<img src="Screenshots/regular-search.png" width="200" alt="Search on the open iPhone Duo">](Screenshots/regular-search.png) | [<img src="Screenshots/regular-detail.png" width="200" alt="Picture detail on the open iPhone Duo">](Screenshots/regular-detail.png) |
+
+The **Detail** column is the shared `AstroPictureDetailView`: a stacked layout in compact width, and a side-by-side artwork/description layout in regular width.
+
+---
+
 ## Requirements
 
 - Xcode 27+
