@@ -16,11 +16,12 @@ final class AstroPictureRemoteDataSourceImpl: AstroPictureRemoteDataSource {
     }
 
     func fetchSingleImage() async throws -> AstroPictureModel {
-        let response = try await client.get([APODResponse].self,
-                                            path: "wp-json/wp/v2/apod-basic",
-                                            params: [URLQueryItem(name: "per_page", value: "1")])
+        let response = try await client.get(
+            [APODResponse].self,
+            path: "wp-json/wp/v2/apod-basic",
+            params: [URLQueryItem(name: "per_page", value: "1")])
 
-        guard let result = response.first else {
+        guard let result = response.value.first else {
             throw NetworkError.invalidResponse
         }
 
@@ -30,32 +31,36 @@ final class AstroPictureRemoteDataSourceImpl: AstroPictureRemoteDataSource {
     func fetchImagesByDate(_ date: Date) async throws -> [AstroPictureModel] {
         let formatted = formatter.string(from: date)
 
-        let response = try await client.get([APODResponse].self,
-                                            path: "wp-json/wp/v2/apod-basic",
-                                            params: [
-                                                URLQueryItem(name: "date_from", value: formatted),
-                                                URLQueryItem(name: "date_to", value: formatted),
-                                            ])
+        let response = try await client.get(
+            [APODResponse].self,
+            path: "wp-json/wp/v2/apod-basic",
+            params: [
+                URLQueryItem(name: "date_from", value: formatted),
+                URLQueryItem(name: "date_to", value: formatted),
+            ])
 
-        return response.map { $0.toDomainModel() }
+        return response.value.map { $0.toDomainModel() }
     }
 
     func fetchImageByDateRange(start: Date, end: Date) async throws -> [AstroPictureModel] {
         let formatted = formatter.string(from: start)
         let formattedEnd = formatter.string(from: end)
 
-        let params = [
-            URLQueryItem(name: "date_from", value: formatted),
-            URLQueryItem(name: "date_to", value: formattedEnd),
-        ]
+        let response = try await client.get(
+            [APODResponse].self,
+            path: "wp-json/wp/v2/apod-basic",
+            params: [
+                URLQueryItem(name: "date_from", value: formatted),
+                URLQueryItem(name: "date_to", value: formattedEnd),
+            ]
 
-        let response = try await client.get([APODResponse].self, path: "wp-json/wp/v2/apod-basic", params: params)
-        return response.map { $0.toDomainModel() }
+        )
+        return response.value.map { $0.toDomainModel() }
     }
 
-    func fetchPagesImages(page: Int, pageCount: Int) async throws -> [AstroPictureModel] {
+    func fetchPagesImages(page: Int, pageCount: Int) async throws -> AstroPicturePage {
         let pageNumber = String(page)
-        let noOfitems = String(min(pageCount, 10))
+        let noOfitems = String(min(pageCount, 25))
 
         let response = try await client.get(
             [APODResponse].self,
@@ -65,6 +70,13 @@ final class AstroPictureRemoteDataSourceImpl: AstroPictureRemoteDataSource {
                 URLQueryItem(name: "per_page", value: noOfitems),
             ]
         )
-        return response.map { $0.toDomainModel() }
+
+        let totalPages = response.header("X-WP-TotalPages").flatMap { number in Int(number) } ?? 0
+        let totalImages = response.header("X-WP-Total").flatMap { number in Int(number) } ?? 0
+
+        return AstroPicturePage(
+            pictures: response.value.map { $0.toDomainModel() },
+            totalAvailablePictures: totalImages,
+            totalPages: totalPages)
     }
 }

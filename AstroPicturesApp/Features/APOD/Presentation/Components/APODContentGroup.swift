@@ -10,9 +10,9 @@ struct APODContentGroup: View {
         case .idle, .loading:
             ProgressView("Loading Picture of the Day…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case let .success(apod):
+        case .success(let apod):
             APODContentView(apod: apod, onToggleFavorite: onToggleFavourite)
-        case let .failure(error):
+        case .failure(let error):
             ContentUnavailableView {
                 Label("Unable to Load", systemImage: "exclamationmark.triangle")
             } description: {

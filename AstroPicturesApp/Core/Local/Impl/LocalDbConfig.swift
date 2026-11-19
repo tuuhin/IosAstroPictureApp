@@ -6,7 +6,7 @@ enum LocalDbConfig {
         static var schemas: [any VersionedSchema.Type] {
             [
                 // current v1 schema
-                LocalSchemaV1.self,
+                LocalSchemaV1.self
             ]
         }
 
@@ -19,8 +19,11 @@ enum LocalDbConfig {
 
     static let dbModelContainer: ModelContainer = {
         do {
-            return try ModelContainer(for: Schema(versionedSchema: LocalSchemaV1.self), migrationPlan: LocalMigrationPlan.self)
-        } catch {
+            return try ModelContainer(
+                for: Schema(versionedSchema: LocalSchemaV1.self),
+                migrationPlan: LocalMigrationPlan.self)
+        }
+        catch {
             fatalError("Failed to create persistent container: \(error)")
         }
     }()
@@ -29,10 +32,12 @@ enum LocalDbConfig {
         do {
             let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
 
-            return try ModelContainer(for: Schema(versionedSchema: LocalSchemaV1.self),
-                                      migrationPlan: LocalMigrationPlan.self,
-                                      configurations: configuration)
-        } catch {
+            return try ModelContainer(
+                for: Schema(versionedSchema: LocalSchemaV1.self),
+                migrationPlan: LocalMigrationPlan.self,
+                configurations: configuration)
+        }
+        catch {
             fatalError("Failed to create in-memory container: \(error)")
         }
     }()

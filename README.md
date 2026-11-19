@@ -20,7 +20,7 @@ Browse NASA's **Astronomy Picture of the Day** (APOD) — a SwiftUI + SwiftData 
 
 - Xcode 27+
 - iOS 26.6+ (simulator or device)
-- [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) for pre-commit hook (optional)
+- [swift-format](https://github.com/swiftlang/swift-format) for the pre-commit hook — bundled with Xcode 16+, nothing to install
 
 ---
 
@@ -52,11 +52,10 @@ Select a simulator or device and run. There is no Swift Package Manager workspac
 4. **Pre-commit hook (optional)**
 
 ```bash
-brew install swiftformat
 bash scripts/setup-hooks.sh
 ```
 
-This runs `swiftformat` on staged `.swift` files before every commit.
+This runs `xcrun swift-format format` on staged `.swift` files before every commit, using the repo's [`.swift-format`](.swift-format) configuration. `swift-format` ships inside the Xcode toolchain, so there is nothing to install.
 
 ---
 
@@ -130,9 +129,42 @@ Offline favourites and caching require no additional setup.
 
 ## Code Style
 
-- SwiftFormat (`swiftformat`) via pre-commit hook (optional; run `scripts/setup-hooks.sh`).
-- 4-space indentation, 120-column line limit (`.editorconfig`).
+- [swift-format](https://github.com/swiftlang/swift-format) (Apple) — style rules live in [`.swift-format`](.swift-format), enforced by the pre-commit hook (`scripts/setup-hooks.sh`).
+- 4-space indentation, 100-column line limit.
 - `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` — the project is fully `@MainActor` by default.
+
+### Formatting
+
+```bash
+# Whole repo
+xcrun swift-format format --in-place --recursive --parallel .
+
+# Single file
+xcrun swift-format format --in-place path/to/File.swift
+
+# Check without writing anything (what CI would run)
+xcrun swift-format lint --recursive .
+```
+
+Xcode uses the same `.swift-format` file. To format the file you are editing, use **Editor ▸ Structure ▸ Format File with 'swift-format'** (⌃⇧I by default). To make it run on every save, bind that menu item to ⌘S — see [Xcode shortcut](#xcode-shortcut).
+
+### Xcode shortcut
+
+Xcode 16+ ships swift-format, and **Editor ▸ Structure ▸ Format File with 'swift-format'** (⌃⇧I) formats the active file using the `.swift-format` at the project root. Xcode autosaves continuously, so ⌘S is free to be repurposed as format-on-save:
+
+1. **System Settings ▸ Keyboard ▸ Keyboard Shortcuts ▸ App Shortcuts** → **+**
+2. Application: **Xcode**
+3. Menu Title: `Format File with 'swift-format'`
+4. Keyboard Shortcut: **⌘S** → **Done**
+5. Relaunch Xcode.
+
+The same thing from the terminal:
+
+```bash
+defaults write com.apple.dt.Xcode NSUserKeyEquivalents -dict-add "Format File with 'swift-format'" "@s"
+```
+
+This is a per-machine setting and is deliberately not stored in the repo. Undo with `defaults delete com.apple.dt.Xcode NSUserKeyEquivalents` and relaunch Xcode. If the shortcut appears to stop working after switching files, reopen the **Editor ▸ Structure** menu once — a long-standing Xcode bug with app shortcuts.
 
 ---
 

@@ -1,10 +1,12 @@
 import Foundation
 
 final class APIKeyInterceptor: HttpRequestInterceptor {
+
     func intercept(_ request: URLRequest) async throws -> URLRequest {
         var request = request
 
-        guard let url = request.url, var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        guard let url = request.url,
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         else { throw NetworkError.invalidURL }
 
         var queryItems = components.queryItems ?? []

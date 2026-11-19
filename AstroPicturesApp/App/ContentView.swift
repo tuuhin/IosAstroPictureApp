@@ -13,10 +13,6 @@ struct ContentView: View {
             Tab("Explore", systemImage: "safari", value: .explore) {
                 ExploreView()
             }
-            // Favorites view
-            Tab("Favorites", systemImage: "heart", value: .favourites) {
-                FavouritesView()
-            }
             // search
             Tab(value: .search, role: .search) {
                 ImageSearchView()

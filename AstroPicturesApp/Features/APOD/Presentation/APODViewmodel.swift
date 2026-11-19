@@ -11,7 +11,6 @@ final class APODViewModel {
         self.repository = repository ?? AppDependencyContainer.shared.apodRepository
     }
 
-    /// exposing this state
     var state: APODScreenState = .idle
 
     func observe() async {
@@ -22,13 +21,14 @@ final class APODViewModel {
                     state = .success(latest)
                 }
             }
-        } catch {
+        }
+        catch {
             state = .failure(error)
         }
     }
 
     func toggleFavourite() async {
-        if case let .success(astroPictureModel) = state {
+        if case .success(let astroPictureModel) = state {
             await repository.toggleFavourite(model: astroPictureModel)
         }
     }

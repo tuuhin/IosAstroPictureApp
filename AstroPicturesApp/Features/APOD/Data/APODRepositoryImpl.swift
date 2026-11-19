@@ -4,9 +4,10 @@ final class APODRepositoryImpl: APODRepository {
     private let remoteDataSource: AstroPictureRemoteDataSource
     private let localDataSource: AstroPictureLocalDataSource
 
-    init(remoteDataSource: AstroPictureRemoteDataSource,
-         localDataSource: AstroPictureLocalDataSource)
-    {
+    init(
+        remoteDataSource: AstroPictureRemoteDataSource,
+        localDataSource: AstroPictureLocalDataSource
+    ) {
         self.remoteDataSource = remoteDataSource
         self.localDataSource = localDataSource
     }
@@ -15,7 +16,8 @@ final class APODRepositoryImpl: APODRepository {
         do {
             // Try loading from local storage first
             return try await localDataSource.fetchLatest()
-        } catch LocalDbErrors.entryAbsent {
+        }
+        catch LocalDbErrors.entryAbsent {
             // Fall back to remote source if missing locally
             let remoteResult = try await remoteDataSource.fetchSingleImage()
             // Persist to cache and return directly

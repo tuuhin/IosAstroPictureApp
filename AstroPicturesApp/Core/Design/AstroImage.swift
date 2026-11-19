@@ -10,21 +10,23 @@ struct AstroImage<Placeholder: View, Failure: View>: View {
             // An preview image as this is a xc preview
             Image("APODPreview")
                 .resizable()
-        } else if let imageUrl {
+        }
+        else if let imageUrl {
             // check the imageurl not null if yes load the async image result
             AsyncImage(url: imageUrl) { phase in
                 switch phase {
                 case .empty:
                     placeholder()
-                case let .success(image):
+                case .success(let image):
                     image.resizable()
-                case let .failure(error):
+                case .failure(let error):
                     failure(error)
                 @unknown default:
                     placeholder()
                 }
             }
-        } else {
+        }
+        else {
             failure(nil)
         }
     }

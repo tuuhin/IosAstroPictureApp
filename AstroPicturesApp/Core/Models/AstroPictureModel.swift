@@ -1,6 +1,6 @@
 import Foundation
 
-struct AstroPictureModel: Sendable {
+struct AstroPictureModel: Sendable, Hashable {
     let date: Date
     let postId: Int
     let title: String

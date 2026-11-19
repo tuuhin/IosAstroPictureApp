@@ -35,7 +35,8 @@ final class AstroPictureLocalDataSourceImpl: AstroPictureLocalDataSource {
             do {
                 // Yield initial state
                 try continuation.yield(self.fetchAllSync())
-            } catch {
+            }
+            catch {
                 // incase fetch all failed
                 continuation.finish()
             }
@@ -54,9 +55,11 @@ final class AstroPictureLocalDataSourceImpl: AstroPictureLocalDataSource {
             self.latestObservers[id] = continuation
             do {
                 try continuation.yield(self.fetchLatestSync())
-            } catch LocalDbErrors.entryAbsent {
+            }
+            catch LocalDbErrors.entryAbsent {
                 continuation.yield(nil)
-            } catch {
+            }
+            catch {
                 continuation.finish()
             }
             continuation.onTermination = { [weak self] _ in
@@ -69,6 +72,19 @@ final class AstroPictureLocalDataSourceImpl: AstroPictureLocalDataSource {
 
     func fetchAll() async throws -> [AstroPictureModel] {
         try fetchAllSync()
+    }
+
+    func fetchPage(page: Int, pageSize: Int) async throws -> [AstroPictureModel] {
+        let safePage = max(page, 1)
+        let safeSize = max(pageSize, 1)
+
+        var descriptor = FetchDescriptor<APODEntity>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchOffset = (safePage - 1) * safeSize
+        descriptor.fetchLimit = safeSize
+
+        return try context.fetch(descriptor).map { $0.toDomainModel() }
     }
 
     func fetchLatest() async throws -> AstroPictureModel {
@@ -153,7 +169,8 @@ final class AstroPictureLocalDataSourceImpl: AstroPictureLocalDataSource {
             existing.url = apod.url
             existing.isFavourite = apod.isFav
             existing.hdURL = apod.hdURL
-        } else {
+        }
+        else {
             context.insert(apod.toEntity())
         }
     }

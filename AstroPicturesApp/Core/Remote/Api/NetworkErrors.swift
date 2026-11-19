@@ -6,5 +6,4 @@ enum NetworkError: Error {
     case invalidResponse
     case httpError(statusCode: Int)
     case decodingFailed(Error)
-    case excededLimit(totalLimit: Int?)
 }

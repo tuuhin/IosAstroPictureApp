@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# Ensure PATH contains standard Homebrew and binary locations
-export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CONFIG="$REPO_ROOT/.swift-format"
 
-# Ensure swiftformat is installed
-if ! command -v swiftformat &> /dev/null; then
-    echo "Error: swiftformat is not installed."
-    echo "Please install it using: brew install swiftformat"
+# swift-format ships inside the Xcode toolchain (Xcode 16+), so use that copy
+# rather than a standalone install to stay in sync with Xcode's built-in formatter.
+if ! xcrun --find swift-format &> /dev/null; then
+    echo "Error: swift-format is not available."
+    echo "It ships with Xcode 16 or newer. Check with: xcrun --find swift-format"
     exit 1
 fi
 
@@ -20,8 +21,8 @@ while IFS= read -r -d '' file; do
 done < <(git diff --cached --name-only --diff-filter=d -z "*.swift")
 
 if [ ${#FILES[@]} -gt 0 ]; then
-    echo "Running SwiftFormat on staged Swift files..."
-    swiftformat "${FILES[@]}"
+    echo "Running swift-format on staged Swift files..."
+    xcrun swift-format format --in-place --configuration "$CONFIG" "${FILES[@]}"
     git add "${FILES[@]}"
 fi
 

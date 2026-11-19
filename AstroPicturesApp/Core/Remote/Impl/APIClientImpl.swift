@@ -1,6 +1,7 @@
 import Foundation
 
 final class APIClientImpl: APIClient {
+
     private var session: URLSession
     private var baseURL: URL
     private var decoder: JSONDecoder
@@ -18,9 +19,15 @@ final class APIClientImpl: APIClient {
         self.interceptors = interceptors
     }
 
-    func get<T: Decodable & Sendable>(_: T.Type, path: String, params: [URLQueryItem] = []) async throws -> T {
+    func get<T: DecodableSendable>(_: T.Type, path: String, params: [URLQueryItem] = [])
+        async throws -> APIResponse<T>
+    {
+
         // prepare the url components
-        guard var components = URLComponents(url: baseURL.appending(path: path), resolvingAgainstBaseURL: false) else {
+        guard
+            var components = URLComponents(
+                url: baseURL.appending(path: path), resolvingAgainstBaseURL: false)
+        else {
             throw NetworkError.invalidURL
         }
 
@@ -40,25 +47,34 @@ final class APIClientImpl: APIClient {
         }
 
         let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
-
-        let remainingHeader = httpResponse.value(forHTTPHeaderField: "X-RateLimit-Remaining") ?? "0"
-        let limitHeader = httpResponse.value(forHTTPHeaderField: "X-RateLimit-Limit")
-
-        guard let remainingLimit = Int32(remainingHeader), remainingLimit > 0 else {
-            let totalLimit = limitHeader.flatMap { Int($0) } ?? 0
-            throw NetworkError.excededLimit(totalLimit: totalLimit)
-        }
-
-        guard (200 ... 299).contains(httpResponse.statusCode) else {
-            throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.invalidResponse
         }
 
         do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
+            let value = try decoder.decode(T.self, from: data)
+            return APIResponse(
+                value: value, statusCode: httpResponse.statusCode,
+                headers: httpResponse.headersMap())
+        }
+        catch {
             throw NetworkError.decodingFailed(error)
         }
+    }
+
+}
+
+extension HTTPURLResponse {
+
+    fileprivate func headersMap() -> [String: String] {
+        var finalMap: [String: String] = [:]
+
+        for (k, v) in allHeaderFields {
+            let key = String(describing: k).lowercased()
+            let value = String(describing: v)
+            finalMap[key] = value
+        }
+
+        return finalMap
     }
 }

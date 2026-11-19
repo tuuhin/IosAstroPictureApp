@@ -17,15 +17,17 @@ xcodebuild build -project AstroPicturesApp.xcodeproj -scheme AstroPicturesApp \
 
 ### Post-build: format
 
-After every build (and before committing), run SwiftFormat over the whole repo:
+After every build (and before committing), run swift-format over the whole repo:
 
 ```bash
-swiftformat .
+xcrun swift-format format --in-place --recursive --parallel .
 ```
 
 - This is the same tool the pre-commit hook runs, but repo-wide instead of only staged files, so every file stays compliant.
-- SwiftFormat honors `.editorconfig` (4-space indent, 120 col limit); there is no `.swiftformat` config file.
-- Requires `swiftformat` (`brew install swiftformat`).
+- Style is defined by `.swift-format` at the repo root (4-space indent, 100 col limit); `.editorconfig` mirrors the indent/width for Xcode's editor. `swift-format` itself does **not** read `.editorconfig`.
+- `swift-format` ships inside the Xcode toolchain, so use `xcrun swift-format` (currently 6.4.4 on Xcode 27.2); nothing to install with Homebrew.
+- The repo was migrated off Nick Lockwood's `swiftformat` (CLI + pre-commit hook). Do not reintroduce it — the two formatters disagree and will fight over the same files.
+- `xcrun swift-format dump-configuration` prints every available option and rule; the `.swift-format` file only lists the overrides, and the rest fall back to those defaults.
 
 ## No test target
 
@@ -77,10 +79,12 @@ Set `NASA_OPEN_API_KEY` in `Config.xcconfig` (gitignored). `Config.example.xccon
 
 ## Code style
 
-- Pre-commit hook runs **swiftformat** on staged `.swift` files (configured via `core.hooksPath = scripts`).
-- Run `swiftformat .` after builds/changes to format the whole repo (see **Post-build: format** above).
-- Install: `brew install swiftformat && bash scripts/setup-hooks.sh`.
-- Formatting: 4-space indent, 120 col limit (`.editorconfig`).
+- Pre-commit hook runs **`xcrun swift-format format --in-place`** on staged `.swift` files (configured via `core.hooksPath = scripts`).
+- Run `xcrun swift-format format --in-place --recursive --parallel .` after builds/changes to format the whole repo (see **Post-build: format** above).
+- Install: nothing to install (bundled with Xcode 16+); just run `bash scripts/setup-hooks.sh` to wire up the hook.
+- Formatting: `.swift-format` is authoritative — 4-space indent, 100 col limit.
+- `.swift-format` lists 9 rule names swift-format does not implement (`NoImplicitSelf`, `OrganizeDeclarations`, `BlankLineBetweenMembers`, `GroupExtensionKeywords`, `NoAbstractMethodCalls`, `NoCasesWithOnlyDefault`, `NeverUseForceCast`, `CaseIndentLevelEqualsSwitch`, `FullyAnnotatedNumberLiterals`). The tool prints an `unrecognized rule` warning for each and ignores it, so those behaviours are not actually enforced.
+- Xcode uses the same `.swift-format`: **Editor ▸ Structure ▸ Format File with 'swift-format'** (⌃⇧I), optionally bound to ⌘S for format-on-save.
 
 ## Key domain types
 

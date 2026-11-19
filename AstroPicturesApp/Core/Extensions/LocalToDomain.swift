@@ -2,7 +2,7 @@ import Foundation
 
 extension APODEntity {
     func toDomainModel() -> AstroPictureModel {
-        return AstroPictureModel(
+        AstroPictureModel(
             date: date,
             postId: Int(postId),
             title: title,
@@ -20,7 +20,7 @@ extension APODEntity {
 
 extension AstroPictureModel {
     func toEntity() -> APODEntity {
-        return APODEntity(
+        APODEntity(
             postId: Int64(postId),
             date: date,
             title: title,
